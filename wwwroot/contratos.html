@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contratos - Sistema Imobiliária</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f5f5; }
+        .sidebar { min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sidebar a { color: white; text-decoration: none; padding: 15px; display: block; transition: 0.3s; }
+        .sidebar a:hover { background: rgba(255,255,255,0.1); }
+        .sidebar a.active { background: rgba(255,255,255,0.2); }
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .badge-ativo { background: #28a745; }
+        .badge-encerrado { background: #6c757d; }
+        .badge-cancelado { background: #dc3545; }
+        .table { background: white; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar text-white p-0">
+                <div class="p-4">
+                    <h4><i class="fas fa-building"></i> Imobiliária</h4>
+                    <p class="small mb-0" id="usuarioInfo">Usuário</p>
+                </div>
+                <nav>
+                    <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="imoveis.html"><i class="fas fa-building"></i> Imóveis</a>
+                    <a href="contratos.html" class="active"><i class="fas fa-file-contract"></i> Contratos</a>
+                    <a href="visitas.html"><i class="fas fa-calendar-alt"></i> Visitas</a>
+                    <a href="clientes.html"><i class="fas fa-users"></i> Clientes</a>
+                    <a href="produtos.html"><i class="fas fa-box"></i> Produtos</a>
+                    <a href="#" id="menuUsuarios" style="display:none;"><i class="fas fa-user-shield"></i> Usuários</a>
+                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                </nav>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <div class="col-md-10 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-file-contract"></i> Gestão de Contratos</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contratoModal" onclick="novoContrato()">
+                        <i class="fas fa-plus"></i> Novo Contrato
+                    </button>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="totalContratos">0</h3>
+                                <p class="mb-0">Total de Contratos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="contratosAtivos" class="text-success">0</h3>
+                                <p class="mb-0">Contratos Ativos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="valorTotal">R$ 0,00</h3>
+                                <p class="mb-0">Valor Total Ativo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Contratos -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nº Contrato</th>
+                                        <th>Tipo</th>
+                                        <th>Imóvel</th>
+                                        <th>Cliente</th>
+                                        <th>Valor</th>
+                                        <th>Início</th>
+                                        <th>Fim</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contratosTabela"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Contrato -->
+    <div class="modal fade" id="contratoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Novo Contrato</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="contratoForm">
+                        <input type="hidden" id="contratoId">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Número do Contrato *</label>
+                                <input type="text" class="form-control" id="numeroContrato" required maxlength="30">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Tipo de Contrato *</label>
+                                <select class="form-select" id="tipoContrato" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Venda">Venda</option>
+                                    <option value="Locacao">Locação</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Imóvel *</label>
+                                <select class="form-select" id="imovelId" required onchange="preencherValorImovel()">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Cliente *</label>
+                                <select class="form-select" id="clienteId" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label>Valor (R$) *</label>
+                                <input type="number" class="form-control" id="valor" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Data Início *</label>
+                                <input type="date" class="form-control" id="dataInicio" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Data Fim</label>
+                                <input type="date" class="form-control" id="dataFim">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Duração (Meses)</label>
+                                <input type="number" class="form-control" id="duracaoMeses" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Status *</label>
+                                <select class="form-select" id="status" required>
+                                    <option value="Ativo">Ativo</option>
+                                    <option value="Encerrado">Encerrado</option>
+                                    <option value="Cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Observações</label>
+                            <textarea class="form-control" id="observacoes" rows="3" maxlength="500"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarContrato()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let imoveisData = [];
+        let clientesData = [];
+
+        // Verificar autenticação
+        window.onload = function() {
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            if (!usuario) {
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('usuarioInfo').textContent = usuario.nome;
+            if (usuario.tipo === 'Admin') {
+                document.getElementById('menuUsuarios').style.display = 'block';
+                document.getElementById('menuUsuarios').href = 'usuarios.html';
+            }
+            carregarContratos();
+            carregarImoveis();
+            carregarClientes();
+        };
+
+        function logout() {
+            localStorage.removeItem('usuario');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarContratos() {
+            try {
+                const response = await fetch(`${API_URL}/contratos`);
+                const contratos = await response.json();
+                exibirContratos(contratos);
+                atualizarEstatisticas(contratos);
+            } catch (error) {
+                console.error('Erro ao carregar contratos:', error);
+                alert('Erro ao carregar contratos');
+            }
+        }
+
+        async function carregarImoveis() {
+            try {
+                const response = await fetch(`${API_URL}/imoveis/disponiveis`);
+                imoveisData = await response.json();
+                const select = document.getElementById('imovelId');
+                select.innerHTML = '<option value="">Selecione...</option>' +
+                    imoveisData.map(i => `<option value="${i.id}" data-venda="${i.valorVenda}" data-locacao="${i.valorLocacao}">${i.titulo} - ${i.cidade}</option>`).join('');
+            } catch (error) {
+                console.error('Erro ao carregar imóveis:', error);
+            }
+        }
+
+        async function carregarClientes() {
+            try {
+                const response = await fetch(`${API_URL}/clientes`);
+                clientesData = await response.json();
+                const select = document.getElementById('clienteId');
+                select.innerHTML = '<option value="">Selecione...</option>' +
+                    clientesData.map(c => `<option value="${c.id}">${c.nome} - ${c.cpf}</option>`).join('');
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
+        }
+
+        function preencherValorImovel() {
+            const select = document.getElementById('imovelId');
+            const tipo = document.getElementById('tipoContrato').value;
+            const option = select.options[select.selectedIndex];
+            
+            if (option && tipo) {
+                const valor = tipo === 'Venda' ? option.dataset.venda : option.dataset.locacao;
+                document.getElementById('valor').value = valor;
+            }
+        }
+
+        function exibirContratos(contratos) {
+            const tabela = document.getElementById('contratosTabela');
+            
+            if (contratos.length === 0) {
+                tabela.innerHTML = '<tr><td colspan="9" class="text-center">Nenhum contrato encontrado.</td></tr>';
+                return;
+            }
+
+            tabela.innerHTML = contratos.map(c => `
+                <tr>
+                    <td>${c.numeroContrato}</td>
+                    <td><span class="badge bg-info">${c.tipoContrato}</span></td>
+                    <td>${c.imovel?.titulo || 'N/A'}</td>
+                    <td>${c.cliente?.nome || 'N/A'}</td>
+                    <td>R$ ${formatarMoeda(c.valor)}</td>
+                    <td>${formatarData(c.dataInicio)}</td>
+                    <td>${c.dataFim ? formatarData(c.dataFim) : '-'}</td>
+                    <td><span class="badge badge-${c.status.toLowerCase()}">${c.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarContrato(${c.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="excluirContrato(${c.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function atualizarEstatisticas(contratos) {
+            document.getElementById('totalContratos').textContent = contratos.length;
+            const ativos = contratos.filter(c => c.status === 'Ativo');
+            document.getElementById('contratosAtivos').textContent = ativos.length;
+            const valorTotal = ativos.reduce((sum, c) => sum + c.valor, 0);
+            document.getElementById('valorTotal').textContent = 'R$ ' + formatarMoeda(valorTotal);
+        }
+
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
+        }
+
+        function formatarData(data) {
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+
+        function novoContrato() {
+            document.getElementById('modalTitle').textContent = 'Novo Contrato';
+            document.getElementById('contratoForm').reset();
+            document.getElementById('contratoId').value = '';
+            document.getElementById('status').value = 'Ativo';
+            document.getElementById('dataInicio').valueAsDate = new Date();
+        }
+
+        async function editarContrato(id) {
+            try {
+                const response = await fetch(`${API_URL}/contratos/${id}`);
+                const contrato = await response.json();
+
+                document.getElementById('modalTitle').textContent = 'Editar Contrato';
+                document.getElementById('contratoId').value = contrato.id;
+                document.getElementById('numeroContrato').value = contrato.numeroContrato;
+                document.getElementById('tipoContrato').value = contrato.tipoContrato;
+                document.getElementById('imovelId').value = contrato.imovelId;
+                document.getElementById('clienteId').value = contrato.clienteId;
+                document.getElementById('valor').value = contrato.valor;
+                document.getElementById('dataInicio').value = contrato.dataInicio.split('T')[0];
+                document.getElementById('dataFim').value = contrato.dataFim ? contrato.dataFim.split('T')[0] : '';
+                document.getElementById('duracaoMeses').value = contrato.duracaoMeses || '';
+                document.getElementById('status').value = contrato.status;
+                document.getElementById('observacoes').value = contrato.observacoes || '';
+
+                new bootstrap.Modal(document.getElementById('contratoModal')).show();
+            } catch (error) {
+                console.error('Erro ao carregar contrato:', error);
+                alert('Erro ao carregar dados do contrato');
+            }
+        }
+
+        async function salvarContrato() {
+            const form = document.getElementById('contratoForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const id = document.getElementById('contratoId').value;
+            const contrato = {
+                id: id ? parseInt(id) : 0,
+                imovelId: parseInt(document.getElementById('imovelId').value),
+                clienteId: parseInt(document.getElementById('clienteId').value),
+                tipoContrato: document.getElementById('tipoContrato').value,
+                numeroContrato: document.getElementById('numeroContrato').value,
+                valor: parseFloat(document.getElementById('valor').value),
+                dataInicio: document.getElementById('dataInicio').value,
+                dataFim: document.getElementById('dataFim').value || null,
+                duracaoMeses: document.getElementById('duracaoMeses').value ? parseInt(document.getElementById('duracaoMeses').value) : null,
+                status: document.getElementById('status').value,
+                observacoes: document.getElementById('observacoes').value || null
+            };
+
+            try {
+                const url = id ? `${API_URL}/contratos/${id}` : `${API_URL}/contratos`;
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(contrato)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('contratoModal')).hide();
+                    carregarContratos();
+                    carregarImoveis(); // Recarregar para atualizar status dos imóveis
+                    alert(id ? 'Contrato atualizado com sucesso!' : 'Contrato cadastrado com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao salvar contrato');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar contrato:', error);
+                alert('Erro ao salvar contrato');
+            }
+        }
+
+        async function excluirContrato(id) {
+            if (!confirm('Tem certeza que deseja excluir este contrato?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/contratos/${id}`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    carregarContratos();
+                    carregarImoveis(); // Recarregar para atualizar status dos imóveis
+                    alert('Contrato excluído com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao excluir contrato');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir contrato:', error);
+                alert('Erro ao excluir contrato');
+            }
+        }
+
+        // Atualizar tipo de contrato ao mudar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('tipoContrato')?.addEventListener('change', preencherValorImovel);
+        });
+    </script>
+</body>
+</html>

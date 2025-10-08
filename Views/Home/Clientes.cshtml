@@ -1,0 +1,261 @@
+@{
+    ViewData["Title"] = "Clientes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-users me-2"></i>Gestão de Clientes</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clienteModal" onclick="novoCliente()">
+            <i class="fas fa-plus me-2"></i>Novo Cliente
+        </button>
+    </div>
+</div>
+
+<!-- Tabela de Clientes -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="clientesTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Cidade</th>
+                        <th>Data Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados carregados via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cliente -->
+<div class="modal fade" id="clienteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clienteModalTitle">Novo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="clienteForm">
+                    <input type="hidden" id="clienteId" name="id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nome" class="form-label">Nome *</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required maxlength="100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="cpf" class="form-label">CPF *</label>
+                            <input type="text" class="form-control" id="cpf" name="cpf" required maxlength="14" placeholder="000.000.000-00">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" required maxlength="100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="text" class="form-control" id="telefone" name="telefone" maxlength="15" placeholder="(11) 99999-9999">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endereco" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="endereco" name="endereco" maxlength="200">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="cidade" class="form-label">Cidade</label>
+                            <input type="text" class="form-control" id="cidade" name="cidade" maxlength="50">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-control" id="estado" name="estado">
+                                <option value="">Selecione...</option>
+                                <option value="AC">AC</option>
+                                <option value="AL">AL</option>
+                                <option value="AP">AP</option>
+                                <option value="AM">AM</option>
+                                <option value="BA">BA</option>
+                                <option value="CE">CE</option>
+                                <option value="DF">DF</option>
+                                <option value="ES">ES</option>
+                                <option value="GO">GO</option>
+                                <option value="MA">MA</option>
+                                <option value="MT">MT</option>
+                                <option value="MS">MS</option>
+                                <option value="MG">MG</option>
+                                <option value="PA">PA</option>
+                                <option value="PB">PB</option>
+                                <option value="PR">PR</option>
+                                <option value="PE">PE</option>
+                                <option value="PI">PI</option>
+                                <option value="RJ">RJ</option>
+                                <option value="RN">RN</option>
+                                <option value="RS">RS</option>
+                                <option value="RO">RO</option>
+                                <option value="RR">RR</option>
+                                <option value="SC">SC</option>
+                                <option value="SP">SP</option>
+                                <option value="SE">SE</option>
+                                <option value="TO">TO</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="cep" class="form-label">CEP</label>
+                            <input type="text" class="form-control" id="cep" name="cep" maxlength="9" placeholder="00000-000">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarCliente()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(function() {
+        carregarClientes();
+    });
+
+    function carregarClientes() {
+        $.get('/api/clientes', function(data) {
+            const tbody = $('#clientesTable tbody');
+            tbody.empty();
+            
+            data.forEach(cliente => {
+                const row = `
+                    <tr>
+                        <td>${cliente.id}</td>
+                        <td>${cliente.nome}</td>
+                        <td>${cliente.cpf}</td>
+                        <td>${cliente.email}</td>
+                        <td>${cliente.telefone || '-'}</td>
+                        <td>${cliente.cidade || '-'}</td>
+                        <td>${new Date(cliente.dataCadastro).toLocaleDateString('pt-BR')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-1" onclick="editarCliente(${cliente.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirCliente(${cliente.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }).fail(function() {
+            alert('Erro ao carregar clientes');
+        });
+    }
+
+    function novoCliente() {
+        $('#clienteModalTitle').text('Novo Cliente');
+        $('#clienteForm')[0].reset();
+        $('#clienteId').val('');
+    }
+
+    function editarCliente(id) {
+        $.get(`/api/clientes/${id}`, function(cliente) {
+            $('#clienteModalTitle').text('Editar Cliente');
+            $('#clienteId').val(cliente.id);
+            $('#nome').val(cliente.nome);
+            $('#cpf').val(cliente.cpf);
+            $('#email').val(cliente.email);
+            $('#telefone').val(cliente.telefone);
+            $('#endereco').val(cliente.endereco);
+            $('#cidade').val(cliente.cidade);
+            $('#estado').val(cliente.estado);
+            $('#cep').val(cliente.cep);
+            $('#clienteModal').modal('show');
+        }).fail(function() {
+            alert('Erro ao carregar cliente');
+        });
+    }
+
+    function salvarCliente() {
+        const cliente = {
+            id: $('#clienteId').val() ? parseInt($('#clienteId').val()) : 0,
+            nome: $('#nome').val(),
+            cpf: $('#cpf').val(),
+            email: $('#email').val(),
+            telefone: $('#telefone').val(),
+            endereco: $('#endereco').val(),
+            cidade: $('#cidade').val(),
+            estado: $('#estado').val(),
+            cep: $('#cep').val()
+        };
+
+        const isEdit = cliente.id > 0;
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit ? `/api/clientes/${cliente.id}` : '/api/clientes';
+
+        $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            data: JSON.stringify(cliente),
+            success: function() {
+                $('#clienteModal').modal('hide');
+                carregarClientes();
+                alert('Cliente salvo com sucesso!');
+            },
+            error: function() {
+                alert('Erro ao salvar cliente');
+            }
+        });
+    }
+
+    function excluirCliente(id) {
+        if (confirm('Tem certeza que deseja excluir este cliente?')) {
+            $.ajax({
+                url: `/api/clientes/${id}`,
+                method: 'DELETE',
+                success: function() {
+                    carregarClientes();
+                    alert('Cliente excluído com sucesso!');
+                },
+                error: function() {
+                    alert('Erro ao excluir cliente');
+                }
+            });
+        }
+    }
+
+    // Máscaras para CPF e CEP
+    $('#cpf').on('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        this.value = value;
+    });
+
+    $('#cep').on('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+        this.value = value;
+    });
+
+    $('#telefone').on('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        value = value.replace(/(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
+        this.value = value;
+    });
+</script>
+}

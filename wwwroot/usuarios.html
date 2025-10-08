@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - CRUD App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .user-info {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block sidebar p-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white"><i class="fas fa-database"></i> CRUD App</h4>
+                    <small class="text-white-50">Sistema de Gestão</small>
+                </div>
+                <div class="user-info">
+                    <small class="text-muted">Logado como:</small>
+                    <div><strong id="nomeUsuario"></strong></div>
+                    <small class="text-muted" id="tipoUsuario"></small>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="clientes.html">
+                            <i class="fas fa-users me-2"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="produtos.html">
+                            <i class="fas fa-box me-2"></i> Produtos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="usuarios.html">
+                            <i class="fas fa-user-shield me-2"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item mt-3">
+                        <a class="nav-link text-warning" href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i> Sair
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <main class="col-md-10 ms-sm-auto px-md-4 main-content">
+                <div class="py-4">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-user-shield me-2"></i>Gestão de Usuários</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#usuarioModal" onclick="novoUsuario()">
+                                <i class="fas fa-plus me-2"></i>Novo Usuário
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Usuários -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="usuariosTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nome</th>
+                                            <th>Email</th>
+                                            <th>Tipo</th>
+                                            <th>Status</th>
+                                            <th>Data Cadastro</th>
+                                            <th>Último Acesso</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Dados carregados via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Usuário -->
+                    <div class="modal fade" id="usuarioModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="usuarioModalTitle">Novo Usuário</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="usuarioForm">
+                                        <input type="hidden" id="usuarioId" name="id">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="nomeForm" class="form-label">Nome Completo *</label>
+                                                <input type="text" class="form-control" id="nomeForm" name="nome" required maxlength="100">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="emailForm" class="form-label">Email *</label>
+                                                <input type="email" class="form-control" id="emailForm" name="email" required maxlength="100">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="senhaForm" class="form-label">Senha *</label>
+                                                <input type="password" class="form-control" id="senhaForm" name="senha" required maxlength="255">
+                                                <small class="text-muted">Mínimo 6 caracteres</small>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="tipoForm" class="form-label">Tipo de Usuário *</label>
+                                                <select class="form-control" id="tipoForm" name="tipo" required>
+                                                    <option value="Usuario">Usuário</option>
+                                                    <option value="Gestor">Gestor</option>
+                                                    <option value="Admin">Administrador</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="ativoForm" name="ativo" checked>
+                                                    <label class="form-check-label" for="ativoForm">
+                                                        Usuário Ativo
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" onclick="salvarUsuario()">Salvar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            verificarAutenticacao();
+            carregarUsuarios();
+        });
+
+        function verificarAutenticacao() {
+            const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+            if (!usuario) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            $('#nomeUsuario').text(usuario.nome);
+            $('#tipoUsuario').text(usuario.tipo);
+
+            // Apenas Admin pode acessar esta página
+            if (usuario.tipo !== 'Admin') {
+                alert('Acesso negado! Apenas administradores podem gerenciar usuários.');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function logout() {
+            if (confirm('Deseja realmente sair do sistema?')) {
+                localStorage.removeItem('usuario');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function carregarUsuarios() {
+            $.get('/api/usuarios', function(data) {
+                const tbody = $('#usuariosTable tbody');
+                tbody.empty();
+                
+                data.forEach(usuario => {
+                    const status = usuario.ativo ? 
+                        '<span class="badge bg-success">Ativo</span>' : 
+                        '<span class="badge bg-secondary">Inativo</span>';
+                    
+                    const tipoBadge = usuario.tipo === 'Admin' ? 'danger' : 
+                                     usuario.tipo === 'Gestor' ? 'warning' : 'info';
+                        
+                    const row = `
+                        <tr>
+                            <td>${usuario.id}</td>
+                            <td>${usuario.nome}</td>
+                            <td>${usuario.email}</td>
+                            <td><span class="badge bg-${tipoBadge}">${usuario.tipo}</span></td>
+                            <td>${status}</td>
+                            <td>${new Date(usuario.dataCadastro).toLocaleDateString('pt-BR')}</td>
+                            <td>${usuario.ultimoAcesso ? new Date(usuario.ultimoAcesso).toLocaleDateString('pt-BR') : '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" onclick="editarUsuario(${usuario.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="excluirUsuario(${usuario.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+            }).fail(function() {
+                alert('Erro ao carregar usuários. Verifique a conexão com o banco de dados.');
+            });
+        }
+
+        function novoUsuario() {
+            $('#usuarioModalTitle').text('Novo Usuário');
+            $('#usuarioForm')[0].reset();
+            $('#usuarioId').val('');
+            $('#ativoForm').prop('checked', true);
+            $('#senhaForm').prop('required', true);
+        }
+
+        function editarUsuario(id) {
+            $.get(`/api/usuarios/${id}`, function(usuario) {
+                $('#usuarioModalTitle').text('Editar Usuário');
+                $('#usuarioId').val(usuario.id);
+                $('#nomeForm').val(usuario.nome);
+                $('#emailForm').val(usuario.email);
+                $('#senhaForm').val('');
+                $('#senhaForm').attr('placeholder', 'Deixe em branco para manter a senha atual');
+                $('#senhaForm').prop('required', false);
+                $('#tipoForm').val(usuario.tipo);
+                $('#ativoForm').prop('checked', usuario.ativo);
+                $('#usuarioModal').modal('show');
+            }).fail(function() {
+                alert('Erro ao carregar usuário');
+            });
+        }
+
+        function salvarUsuario() {
+            const usuario = {
+                id: $('#usuarioId').val() ? parseInt($('#usuarioId').val()) : 0,
+                nome: $('#nomeForm').val(),
+                email: $('#emailForm').val(),
+                senha: $('#senhaForm').val(),
+                tipo: $('#tipoForm').val(),
+                ativo: $('#ativoForm').is(':checked')
+            };
+
+            // Validar senha
+            const isEdit = usuario.id > 0;
+            if (!isEdit && usuario.senha.length < 6) {
+                alert('A senha deve ter no mínimo 6 caracteres');
+                return;
+            }
+
+            // Se estiver editando e senha estiver vazia, usar ****
+            if (isEdit && !usuario.senha) {
+                usuario.senha = '****';
+            }
+
+            const method = isEdit ? 'PUT' : 'POST';
+            const url = isEdit ? `/api/usuarios/${usuario.id}` : '/api/usuarios';
+
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                data: JSON.stringify(usuario),
+                success: function() {
+                    $('#usuarioModal').modal('hide');
+                    carregarUsuarios();
+                    alert('Usuário salvo com sucesso!');
+                },
+                error: function(xhr) {
+                    alert('Erro ao salvar usuário: ' + (xhr.responseText || 'Erro desconhecido'));
+                }
+            });
+        }
+
+        function excluirUsuario(id) {
+            const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+            if (usuarioLogado.id === id) {
+                alert('Você não pode excluir seu próprio usuário!');
+                return;
+            }
+
+            if (confirm('Tem certeza que deseja excluir este usuário?')) {
+                $.ajax({
+                    url: `/api/usuarios/${id}`,
+                    method: 'DELETE',
+                    success: function() {
+                        carregarUsuarios();
+                        alert('Usuário excluído com sucesso!');
+                    },
+                    error: function() {
+                        alert('Erro ao excluir usuário');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

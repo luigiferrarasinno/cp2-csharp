@@ -1,0 +1,181 @@
+-- Scripts SQL para Oracle Database
+-- Prefixo das tabelas: RM98047_97648
+
+-- ===================================
+-- CRIAÇÃO DA TABELA DE CLIENTES
+-- ===================================
+
+-- Dropar a tabela se ela existir (opcional - para recriar)
+-- DROP TABLE RM98047_97648_CLIENTE CASCADE CONSTRAINTS;
+
+-- Criar tabela de clientes
+CREATE TABLE RM98047_97648_CLIENTE (
+    ID NUMBER(10) NOT NULL,
+    NOME VARCHAR2(100) NOT NULL,
+    CPF VARCHAR2(14) NOT NULL,
+    EMAIL VARCHAR2(100) NOT NULL,
+    TELEFONE VARCHAR2(15),
+    ENDERECO VARCHAR2(200),
+    CIDADE VARCHAR2(50),
+    ESTADO VARCHAR2(2),
+    CEP VARCHAR2(8),
+    DATA_CADASTRO DATE DEFAULT SYSDATE NOT NULL,
+    CONSTRAINT PK_RM98047_97648_CLIENTE PRIMARY KEY (ID),
+    CONSTRAINT UK_RM98047_97648_CLIENTE_CPF UNIQUE (CPF),
+    CONSTRAINT UK_RM98047_97648_CLIENTE_EMAIL UNIQUE (EMAIL)
+);
+
+-- Criar sequência para ID do cliente
+CREATE SEQUENCE SEQ_RM98047_97648_CLIENTE
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+
+-- Criar trigger para auto increment do ID
+CREATE OR REPLACE TRIGGER TRG_RM98047_97648_CLIENTE_ID
+    BEFORE INSERT ON RM98047_97648_CLIENTE
+    FOR EACH ROW
+BEGIN
+    IF :NEW.ID IS NULL THEN
+        :NEW.ID := SEQ_RM98047_97648_CLIENTE.NEXTVAL;
+    END IF;
+END;
+/
+
+-- ===================================
+-- CRIAÇÃO DA TABELA DE PRODUTOS
+-- ===================================
+
+-- Dropar a tabela se ela existir (opcional - para recriar)
+-- DROP TABLE RM98047_97648_PRODUTO CASCADE CONSTRAINTS;
+
+-- Criar tabela de produtos
+CREATE TABLE RM98047_97648_PRODUTO (
+    ID NUMBER(10) NOT NULL,
+    NOME VARCHAR2(100) NOT NULL,
+    DESCRICAO VARCHAR2(500),
+    PRECO NUMBER(10,2) NOT NULL,
+    QUANTIDADE NUMBER(10) NOT NULL,
+    CATEGORIA VARCHAR2(50),
+    CODIGO VARCHAR2(20),
+    DATA_CADASTRO DATE DEFAULT SYSDATE NOT NULL,
+    ATIVO NUMBER(1) DEFAULT 1 NOT NULL,
+    CONSTRAINT PK_RM98047_97648_PRODUTO PRIMARY KEY (ID),
+    CONSTRAINT UK_RM98047_97648_PRODUTO_CODIGO UNIQUE (CODIGO),
+    CONSTRAINT CK_RM98047_97648_PRODUTO_ATIVO CHECK (ATIVO IN (0, 1)),
+    CONSTRAINT CK_RM98047_97648_PRODUTO_PRECO CHECK (PRECO >= 0),
+    CONSTRAINT CK_RM98047_97648_PRODUTO_QTD CHECK (QUANTIDADE >= 0)
+);
+
+-- Criar sequência para ID do produto
+CREATE SEQUENCE SEQ_RM98047_97648_PRODUTO
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+
+-- Criar trigger para auto increment do ID
+CREATE OR REPLACE TRIGGER TRG_RM98047_97648_PRODUTO_ID
+    BEFORE INSERT ON RM98047_97648_PRODUTO
+    FOR EACH ROW
+BEGIN
+    IF :NEW.ID IS NULL THEN
+        :NEW.ID := SEQ_RM98047_97648_PRODUTO.NEXTVAL;
+    END IF;
+END;
+/
+
+-- ===================================
+-- INSERIR DADOS DE EXEMPLO
+-- ===================================
+
+-- Inserir clientes de exemplo (CEP sem hífen - máximo 8 caracteres)
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('João Silva', '123.456.789-00', 'joao.silva@email.com', '(11) 99999-1234', 'Rua das Flores, 123', 'São Paulo', 'SP', '01234567');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Maria Santos', '987.654.321-00', 'maria.santos@email.com', '(11) 88888-5678', 'Av. Paulista, 456', 'São Paulo', 'SP', '01310100');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Pedro Oliveira', '456.789.123-00', 'pedro.oliveira@email.com', '(21) 77777-9012', 'Rua Copacabana, 789', 'Rio de Janeiro', 'RJ', '22070011');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Ana Costa', '321.654.987-00', 'ana.costa@email.com', '(11) 96666-5555', 'Rua Augusta, 1500', 'São Paulo', 'SP', '01304001');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Carlos Mendes', '789.123.456-00', 'carlos.mendes@email.com', '(21) 95555-4444', 'Av. Atlântica, 200', 'Rio de Janeiro', 'RJ', '22021001');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Fernanda Lima', '654.321.789-00', 'fernanda.lima@email.com', '(11) 94444-3333', 'Rua Oscar Freire, 800', 'São Paulo', 'SP', '01426001');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Ricardo Souza', '147.258.369-00', 'ricardo.souza@email.com', '(47) 93333-2222', 'Rua XV de Novembro, 300', 'Blumenau', 'SC', '89010000');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Juliana Martins', '258.369.147-00', 'juliana.martins@email.com', '(51) 92222-1111', 'Av. Borges de Medeiros, 500', 'Porto Alegre', 'RS', '90020021');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Roberto Alves', '369.147.258-00', 'roberto.alves@email.com', '(85) 91111-0000', 'Rua do Comércio, 150', 'Fortaleza', 'CE', '60025100');
+
+INSERT INTO RM98047_97648_CLIENTE (NOME, CPF, EMAIL, TELEFONE, ENDERECO, CIDADE, ESTADO, CEP) VALUES
+('Patricia Rocha', '159.753.486-00', 'patricia.rocha@email.com', '(61) 90000-9999', 'SQN 205 Bloco A', 'Brasília', 'DF', '70843010');
+
+-- Inserir produtos de exemplo
+INSERT INTO RM98047_97648_PRODUTO (NOME, DESCRICAO, PRECO, QUANTIDADE, CATEGORIA, CODIGO) VALUES
+('Smartphone Samsung Galaxy', 'Smartphone com 128GB de armazenamento', 899.99, 50, 'Eletrônicos', 'SMART001');
+
+INSERT INTO RM98047_97648_PRODUTO (NOME, DESCRICAO, PRECO, QUANTIDADE, CATEGORIA, CODIGO) VALUES
+('Notebook Dell Inspiron', 'Notebook Intel Core i5, 8GB RAM, 256GB SSD', 2499.90, 25, 'Eletrônicos', 'NOTE001');
+
+INSERT INTO RM98047_97648_PRODUTO (NOME, DESCRICAO, PRECO, QUANTIDADE, CATEGORIA, CODIGO) VALUES
+('Camiseta Polo', 'Camiseta polo masculina 100% algodão', 79.90, 100, 'Roupas', 'POLO001');
+
+INSERT INTO RM98047_97648_PRODUTO (NOME, DESCRICAO, PRECO, QUANTIDADE, CATEGORIA, CODIGO) VALUES
+('Mesa de Jantar', 'Mesa de jantar para 6 pessoas em madeira maciça', 1299.00, 10, 'Casa', 'MESA001');
+
+-- Commit das transações
+COMMIT;
+
+-- ===================================
+-- CONSULTAS ÚTEIS PARA TESTES
+-- ===================================
+
+-- Verificar clientes cadastrados
+SELECT * FROM RM98047_97648_CLIENTE ORDER BY ID;
+
+-- Verificar produtos cadastrados
+SELECT * FROM RM98047_97648_PRODUTO ORDER BY ID;
+
+-- Contar total de clientes
+SELECT COUNT(*) AS TOTAL_CLIENTES FROM RM98047_97648_CLIENTE;
+
+-- Contar total de produtos
+SELECT COUNT(*) AS TOTAL_PRODUTOS FROM RM98047_97648_PRODUTO;
+
+-- Produtos por categoria
+SELECT CATEGORIA, COUNT(*) AS QUANTIDADE 
+FROM RM98047_97648_PRODUTO 
+WHERE CATEGORIA IS NOT NULL 
+GROUP BY CATEGORIA 
+ORDER BY CATEGORIA;
+
+-- Valor total em estoque
+SELECT SUM(PRECO * QUANTIDADE) AS VALOR_TOTAL_ESTOQUE 
+FROM RM98047_97648_PRODUTO 
+WHERE ATIVO = 1;
+
+-- ===================================
+-- SCRIPTS DE LIMPEZA (OPCIONAL)
+-- ===================================
+
+-- Para limpar os dados das tabelas (use com cuidado!)
+-- DELETE FROM RM98047_97648_CLIENTE;
+-- DELETE FROM RM98047_97648_PRODUTO;
+-- COMMIT;
+
+-- Para dropar as tabelas completamente (use com cuidado!)
+-- DROP TABLE RM98047_97648_CLIENTE CASCADE CONSTRAINTS;
+-- DROP TABLE RM98047_97648_PRODUTO CASCADE CONSTRAINTS;
+-- DROP SEQUENCE SEQ_RM98047_97648_CLIENTE;
+-- DROP SEQUENCE SEQ_RM98047_97648_PRODUTO;

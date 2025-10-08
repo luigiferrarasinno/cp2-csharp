@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+</div>
+
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Clientes Cadastrados</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalClientes">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Produtos Cadastrados</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalProdutos">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-users me-2"></i>Gestão de Clientes
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Gerencie todos os clientes cadastrados no sistema.</p>
+                <a href="/Home/Clientes" class="btn btn-primary">
+                    <i class="fas fa-users me-2"></i>Gerenciar Clientes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-box me-2"></i>Gestão de Produtos
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Gerencie todos os produtos cadastrados no sistema.</p>
+                <a href="/Home/Produtos" class="btn btn-primary">
+                    <i class="fas fa-box me-2"></i>Gerenciar Produtos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(function() {
+        // Carregar estatísticas
+        loadDashboardStats();
+    });
+
+    function loadDashboardStats() {
+        // Carregar total de clientes
+        $.get('/api/clientes', function(data) {
+            $('#totalClientes').text(data.length);
+        }).fail(function() {
+            $('#totalClientes').text('N/A');
+        });
+
+        // Carregar total de produtos
+        $.get('/api/produtos', function(data) {
+            $('#totalProdutos').text(data.length);
+        }).fail(function() {
+            $('#totalProdutos').text('N/A');
+        });
+    }
+</script>
+}

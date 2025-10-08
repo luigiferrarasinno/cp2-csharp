@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imóveis - Sistema Imobiliária</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f5f5; }
+        .sidebar { min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sidebar a { color: white; text-decoration: none; padding: 15px; display: block; transition: 0.3s; }
+        .sidebar a:hover { background: rgba(255,255,255,0.1); }
+        .sidebar a.active { background: rgba(255,255,255,0.2); }
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .badge-disponivel { background: #28a745; }
+        .badge-ocupado { background: #dc3545; }
+        .badge-manutencao { background: #ffc107; }
+        .imovel-card { cursor: pointer; transition: 0.3s; }
+        .imovel-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar text-white p-0">
+                <div class="p-4">
+                    <h4><i class="fas fa-building"></i> Imobiliária</h4>
+                    <p class="small mb-0" id="usuarioInfo">Usuário</p>
+                </div>
+                <nav>
+                    <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="imoveis.html" class="active"><i class="fas fa-building"></i> Imóveis</a>
+                    <a href="contratos.html"><i class="fas fa-file-contract"></i> Contratos</a>
+                    <a href="visitas.html"><i class="fas fa-calendar-alt"></i> Visitas</a>
+                    <a href="clientes.html"><i class="fas fa-users"></i> Clientes</a>
+                    <a href="produtos.html"><i class="fas fa-box"></i> Produtos</a>
+                    <a href="#" id="menuUsuarios" style="display:none;"><i class="fas fa-user-shield"></i> Usuários</a>
+                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                </nav>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <div class="col-md-10 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-building"></i> Gestão de Imóveis</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#imovelModal" onclick="novoImovel()">
+                        <i class="fas fa-plus"></i> Novo Imóvel
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Tipo de Imóvel</label>
+                                <select class="form-select" id="filtroTipo" onchange="filtrarImoveis()">
+                                    <option value="">Todos</option>
+                                    <option value="Casa">Casa</option>
+                                    <option value="Apartamento">Apartamento</option>
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Terreno">Terreno</option>
+                                    <option value="Chacara">Chácara</option>
+                                    <option value="Galpao">Galpão</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Finalidade</label>
+                                <select class="form-select" id="filtroFinalidade" onchange="filtrarImoveis()">
+                                    <option value="">Todas</option>
+                                    <option value="Venda">Venda</option>
+                                    <option value="Locacao">Locação</option>
+                                    <option value="Ambos">Ambos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Status</label>
+                                <select class="form-select" id="filtroStatus" onchange="filtrarImoveis()">
+                                    <option value="">Todos</option>
+                                    <option value="Disponivel">Disponível</option>
+                                    <option value="Ocupado">Ocupado</option>
+                                    <option value="Manutencao">Manutenção</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Buscar</label>
+                                <input type="text" class="form-control" id="busca" placeholder="Buscar..." onkeyup="filtrarImoveis()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Imóveis -->
+                <div id="imoveisLista" class="row"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Imóvel -->
+    <div class="modal fade" id="imovelModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Novo Imóvel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="imovelForm">
+                        <input type="hidden" id="imovelId">
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label>Título *</label>
+                                <input type="text" class="form-control" id="titulo" required maxlength="100">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Status *</label>
+                                <select class="form-select" id="status" required>
+                                    <option value="Disponivel">Disponível</option>
+                                    <option value="Ocupado">Ocupado</option>
+                                    <option value="Manutencao">Manutenção</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Descrição *</label>
+                            <textarea class="form-control" id="descricao" rows="3" required maxlength="500"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label>Tipo de Imóvel *</label>
+                                <select class="form-select" id="tipoImovel" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Casa">Casa</option>
+                                    <option value="Apartamento">Apartamento</option>
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Terreno">Terreno</option>
+                                    <option value="Chacara">Chácara</option>
+                                    <option value="Galpao">Galpão</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Finalidade *</label>
+                                <select class="form-select" id="finalidade" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Venda">Venda</option>
+                                    <option value="Locacao">Locação</option>
+                                    <option value="Ambos">Ambos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Ativo</label>
+                                <select class="form-select" id="ativo">
+                                    <option value="true">Sim</option>
+                                    <option value="false">Não</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Valor Venda (R$) *</label>
+                                <input type="number" class="form-control" id="valorVenda" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Valor Locação (R$) *</label>
+                                <input type="number" class="form-control" id="valorLocacao" step="0.01" min="0" required>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-3 mb-3">Localização</h6>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label>Endereço *</label>
+                                <input type="text" class="form-control" id="endereco" required maxlength="200">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>CEP *</label>
+                                <input type="text" class="form-control" id="cep" required maxlength="8">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label>Bairro *</label>
+                                <input type="text" class="form-control" id="bairro" required maxlength="50">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Cidade *</label>
+                                <input type="text" class="form-control" id="cidade" required maxlength="50">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label>Estado *</label>
+                                <input type="text" class="form-control" id="estado" required maxlength="2" style="text-transform: uppercase;">
+                            </div>
+                        </div>
+
+                        <h6 class="mt-3 mb-3">Características</h6>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label>Quartos</label>
+                                <input type="number" class="form-control" id="quartos" min="0" value="0">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>Banheiros</label>
+                                <input type="number" class="form-control" id="banheiros" min="0" value="0">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>Vagas</label>
+                                <input type="number" class="form-control" id="vagas" min="0" value="0">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>Área Total (m²)</label>
+                                <input type="number" class="form-control" id="areaTotal" step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label>Área Construída (m²)</label>
+                                <input type="number" class="form-control" id="areaConstruida" step="0.01" min="0" value="0">
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label>Proprietário</label>
+                                <input type="text" class="form-control" id="proprietario" maxlength="100">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Telefone Proprietário</label>
+                                <input type="text" class="form-control" id="telefoneProprietario" maxlength="15">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarImovel()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let imoveisData = [];
+
+        // Verificar autenticação
+        window.onload = function() {
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            if (!usuario) {
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('usuarioInfo').textContent = usuario.nome;
+            if (usuario.tipo === 'Admin') {
+                document.getElementById('menuUsuarios').style.display = 'block';
+                document.getElementById('menuUsuarios').href = 'usuarios.html';
+            }
+            carregarImoveis();
+            aplicarMascaras();
+        };
+
+        function aplicarMascaras() {
+            $('#cep').mask('00000-000');
+            $('#telefoneProprietario').mask('(00) 00000-0000');
+        }
+
+        function logout() {
+            localStorage.removeItem('usuario');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarImoveis() {
+            try {
+                const response = await fetch(`${API_URL}/imoveis`);
+                imoveisData = await response.json();
+                exibirImoveis(imoveisData);
+            } catch (error) {
+                console.error('Erro ao carregar imóveis:', error);
+                alert('Erro ao carregar imóveis');
+            }
+        }
+
+        function exibirImoveis(imoveis) {
+            const lista = document.getElementById('imoveisLista');
+            
+            if (imoveis.length === 0) {
+                lista.innerHTML = '<div class="col-12"><div class="alert alert-info">Nenhum imóvel encontrado.</div></div>';
+                return;
+            }
+
+            lista.innerHTML = imoveis.map(imovel => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card imovel-card" onclick="editarImovel(${imovel.id})">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">${imovel.titulo}</h5>
+                                <span class="badge badge-${imovel.status.toLowerCase()}">${imovel.status}</span>
+                            </div>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt"></i> ${imovel.cidade} - ${imovel.estado}
+                            </p>
+                            <p class="card-text small">${imovel.descricao.substring(0, 100)}...</p>
+                            <div class="row small text-muted mb-2">
+                                <div class="col-6"><i class="fas fa-home"></i> ${imovel.tipoImovel}</div>
+                                <div class="col-6"><i class="fas fa-tag"></i> ${imovel.finalidade}</div>
+                            </div>
+                            <div class="row small mb-2">
+                                <div class="col-4"><i class="fas fa-bed"></i> ${imovel.quartos}</div>
+                                <div class="col-4"><i class="fas fa-bath"></i> ${imovel.banheiros}</div>
+                                <div class="col-4"><i class="fas fa-car"></i> ${imovel.vagas}</div>
+                            </div>
+                            <div class="row mt-2">
+                                ${imovel.valorVenda > 0 ? `<div class="col-6"><strong>Venda:</strong> R$ ${formatarMoeda(imovel.valorVenda)}</div>` : ''}
+                                ${imovel.valorLocacao > 0 ? `<div class="col-6"><strong>Locação:</strong> R$ ${formatarMoeda(imovel.valorLocacao)}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); editarImovel(${imovel.id})">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); excluirImovel(${imovel.id})">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
+        }
+
+        function filtrarImoveis() {
+            const tipo = document.getElementById('filtroTipo').value.toLowerCase();
+            const finalidade = document.getElementById('filtroFinalidade').value.toLowerCase();
+            const status = document.getElementById('filtroStatus').value.toLowerCase();
+            const busca = document.getElementById('busca').value.toLowerCase();
+
+            const filtrados = imoveisData.filter(imovel => {
+                return (!tipo || imovel.tipoImovel.toLowerCase() === tipo) &&
+                       (!finalidade || imovel.finalidade.toLowerCase() === finalidade) &&
+                       (!status || imovel.status.toLowerCase() === status) &&
+                       (!busca || imovel.titulo.toLowerCase().includes(busca) || 
+                                  imovel.descricao.toLowerCase().includes(busca) ||
+                                  imovel.cidade.toLowerCase().includes(busca));
+            });
+
+            exibirImoveis(filtrados);
+        }
+
+        function novoImovel() {
+            document.getElementById('modalTitle').textContent = 'Novo Imóvel';
+            document.getElementById('imovelForm').reset();
+            document.getElementById('imovelId').value = '';
+            document.getElementById('ativo').value = 'true';
+        }
+
+        async function editarImovel(id) {
+            try {
+                const response = await fetch(`${API_URL}/imoveis/${id}`);
+                const imovel = await response.json();
+
+                document.getElementById('modalTitle').textContent = 'Editar Imóvel';
+                document.getElementById('imovelId').value = imovel.id;
+                document.getElementById('titulo').value = imovel.titulo;
+                document.getElementById('descricao').value = imovel.descricao;
+                document.getElementById('tipoImovel').value = imovel.tipoImovel;
+                document.getElementById('finalidade').value = imovel.finalidade;
+                document.getElementById('valorVenda').value = imovel.valorVenda;
+                document.getElementById('valorLocacao').value = imovel.valorLocacao;
+                document.getElementById('endereco').value = imovel.endereco;
+                document.getElementById('bairro').value = imovel.bairro;
+                document.getElementById('cidade').value = imovel.cidade;
+                document.getElementById('estado').value = imovel.estado;
+                document.getElementById('cep').value = imovel.cep;
+                document.getElementById('quartos').value = imovel.quartos;
+                document.getElementById('banheiros').value = imovel.banheiros;
+                document.getElementById('vagas').value = imovel.vagas;
+                document.getElementById('areaTotal').value = imovel.areaTotal;
+                document.getElementById('areaConstruida').value = imovel.areaConstruida;
+                document.getElementById('proprietario').value = imovel.proprietario || '';
+                document.getElementById('telefoneProprietario').value = imovel.telefoneProprietario || '';
+                document.getElementById('status').value = imovel.status;
+                document.getElementById('ativo').value = imovel.ativo.toString();
+
+                new bootstrap.Modal(document.getElementById('imovelModal')).show();
+            } catch (error) {
+                console.error('Erro ao carregar imóvel:', error);
+                alert('Erro ao carregar dados do imóvel');
+            }
+        }
+
+        async function salvarImovel() {
+            const form = document.getElementById('imovelForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const id = document.getElementById('imovelId').value;
+            const imovel = {
+                id: id ? parseInt(id) : 0,
+                titulo: document.getElementById('titulo').value,
+                descricao: document.getElementById('descricao').value,
+                tipoImovel: document.getElementById('tipoImovel').value,
+                finalidade: document.getElementById('finalidade').value,
+                valorVenda: parseFloat(document.getElementById('valorVenda').value),
+                valorLocacao: parseFloat(document.getElementById('valorLocacao').value),
+                endereco: document.getElementById('endereco').value,
+                bairro: document.getElementById('bairro').value,
+                cidade: document.getElementById('cidade').value,
+                estado: document.getElementById('estado').value.toUpperCase(),
+                cep: document.getElementById('cep').value.replace(/\D/g, ''),
+                quartos: parseInt(document.getElementById('quartos').value),
+                banheiros: parseInt(document.getElementById('banheiros').value),
+                vagas: parseInt(document.getElementById('vagas').value),
+                areaTotal: parseFloat(document.getElementById('areaTotal').value),
+                areaConstruida: parseFloat(document.getElementById('areaConstruida').value),
+                proprietario: document.getElementById('proprietario').value || null,
+                telefoneProprietario: document.getElementById('telefoneProprietario').value.replace(/\D/g, '') || null,
+                status: document.getElementById('status').value,
+                ativo: document.getElementById('ativo').value === 'true'
+            };
+
+            try {
+                const url = id ? `${API_URL}/imoveis/${id}` : `${API_URL}/imoveis`;
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(imovel)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('imovelModal')).hide();
+                    carregarImoveis();
+                    alert(id ? 'Imóvel atualizado com sucesso!' : 'Imóvel cadastrado com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao salvar imóvel');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar imóvel:', error);
+                alert('Erro ao salvar imóvel');
+            }
+        }
+
+        async function excluirImovel(id) {
+            if (!confirm('Tem certeza que deseja excluir este imóvel?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/imoveis/${id}`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    carregarImoveis();
+                    alert('Imóvel excluído com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao excluir imóvel');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir imóvel:', error);
+                alert('Erro ao excluir imóvel');
+            }
+        }
+    </script>
+</body>
+</html>

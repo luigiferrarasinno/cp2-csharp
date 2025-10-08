@@ -136,6 +136,7 @@ c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\CrudApp.MvcApplicationPartsAssem
 c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\CrudApp.MvcApplicationPartsAssemblyInfo.cache
 c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\CrudApp.RazorAssemblyInfo.cache
 c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\CrudApp.RazorAssemblyInfo.cs
+c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\CrudApp.sourcelink.json
 c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\scopedcss\bundle\CrudApp.styles.css
 c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\staticwebassets.build.json
 c:\Users\labsfiap\Downloads\cp\obj\Debug\net8.0\staticwebassets.build.json.cache

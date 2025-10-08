@@ -10,16 +10,14 @@ namespace CrudApp.Models
         public int ImovelId { get; set; }
 
         [Required]
-        public int ClienteId { get; set; }
-
-        [Required]
+        public int ClienteId { get; set; }        [Required]
         public DateTime DataVisita { get; set; }
 
         [Required]
-        public TimeSpan HoraInicio { get; set; }
+        public DateTime HoraInicio { get; set; }
 
         [Required]
-        public TimeSpan HoraFim { get; set; }
+        public DateTime HoraFim { get; set; }
 
         [Required]
         [StringLength(20)]

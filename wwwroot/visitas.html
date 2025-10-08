@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitas - Sistema Imobiliária</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f5f5f5; }
+        .sidebar { min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sidebar a { color: white; text-decoration: none; padding: 15px; display: block; transition: 0.3s; }
+        .sidebar a:hover { background: rgba(255,255,255,0.1); }
+        .sidebar a.active { background: rgba(255,255,255,0.2); }
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .badge-agendada { background: #17a2b8; }
+        .badge-confirmada { background: #28a745; }
+        .badge-realizada { background: #6c757d; }
+        .badge-cancelada { background: #dc3545; }
+        .table { background: white; }
+        .visita-hoje { background-color: #fff3cd !important; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar text-white p-0">
+                <div class="p-4">
+                    <h4><i class="fas fa-building"></i> Imobiliária</h4>
+                    <p class="small mb-0" id="usuarioInfo">Usuário</p>
+                </div>
+                <nav>
+                    <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                    <a href="imoveis.html"><i class="fas fa-building"></i> Imóveis</a>
+                    <a href="contratos.html"><i class="fas fa-file-contract"></i> Contratos</a>
+                    <a href="visitas.html" class="active"><i class="fas fa-calendar-alt"></i> Visitas</a>
+                    <a href="clientes.html"><i class="fas fa-users"></i> Clientes</a>
+                    <a href="produtos.html"><i class="fas fa-box"></i> Produtos</a>
+                    <a href="#" id="menuUsuarios" style="display:none;"><i class="fas fa-user-shield"></i> Usuários</a>
+                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                </nav>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <div class="col-md-10 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-calendar-alt"></i> Gestão de Visitas</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitaModal" onclick="novaVisita()">
+                        <i class="fas fa-plus"></i> Agendar Visita
+                    </button>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="totalVisitas">0</h3>
+                                <p class="mb-0">Total de Visitas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="visitasHoje" class="text-warning">0</h3>
+                                <p class="mb-0">Visitas Hoje</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="visitasAgendadas" class="text-info">0</h3>
+                                <p class="mb-0">Agendadas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 id="visitasRealizadas" class="text-success">0</h3>
+                                <p class="mb-0">Realizadas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>Status</label>
+                                <select class="form-select" id="filtroStatus" onchange="filtrarVisitas()">
+                                    <option value="">Todos</option>
+                                    <option value="Agendada">Agendada</option>
+                                    <option value="Confirmada">Confirmada</option>
+                                    <option value="Realizada">Realizada</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Data Início</label>
+                                <input type="date" class="form-control" id="filtroDataInicio" onchange="filtrarVisitas()">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Data Fim</label>
+                                <input type="date" class="form-control" id="filtroDataFim" onchange="filtrarVisitas()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Visitas -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Horário</th>
+                                        <th>Imóvel</th>
+                                        <th>Interessado</th>
+                                        <th>Telefone</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="visitasTabela"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Visita -->
+    <div class="modal fade" id="visitaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Nova Visita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> O sistema não permite agendar visitas no mesmo horário para o mesmo imóvel.
+                    </div>
+                    
+                    <form id="visitaForm">
+                        <input type="hidden" id="visitaId">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Imóvel *</label>
+                                <select class="form-select" id="imovelId" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Cliente *</label>
+                                <select class="form-select" id="clienteId" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label>Data da Visita *</label>
+                                <input type="date" class="form-control" id="dataVisita" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Hora Início *</label>
+                                <input type="time" class="form-control" id="horaInicio" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Hora Fim *</label>
+                                <input type="time" class="form-control" id="horaFim" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label>Nome do Interessado</label>
+                                <input type="text" class="form-control" id="nomeInteressado" maxlength="100">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Status *</label>
+                                <select class="form-select" id="status" required>
+                                    <option value="Agendada">Agendada</option>
+                                    <option value="Confirmada">Confirmada</option>
+                                    <option value="Realizada">Realizada</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Telefone do Interessado</label>
+                                <input type="text" class="form-control" id="telefoneInteressado" maxlength="15">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Email do Interessado</label>
+                                <input type="email" class="form-control" id="emailInteressado" maxlength="100">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Observações</label>
+                            <textarea class="form-control" id="observacoes" rows="3" maxlength="500"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarVisita()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let visitasData = [];
+
+        // Verificar autenticação
+        window.onload = function() {
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            if (!usuario) {
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('usuarioInfo').textContent = usuario.nome;
+            if (usuario.tipo === 'Admin') {
+                document.getElementById('menuUsuarios').style.display = 'block';
+                document.getElementById('menuUsuarios').href = 'usuarios.html';
+            }
+            carregarVisitas();
+            carregarImoveis();
+            carregarClientes();
+            aplicarMascaras();
+        };
+
+        function aplicarMascaras() {
+            $('#telefoneInteressado').mask('(00) 00000-0000');
+        }
+
+        function logout() {
+            localStorage.removeItem('usuario');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarVisitas() {
+            try {
+                const response = await fetch(`${API_URL}/visitas`);
+                visitasData = await response.json();
+                exibirVisitas(visitasData);
+                atualizarEstatisticas(visitasData);
+            } catch (error) {
+                console.error('Erro ao carregar visitas:', error);
+                alert('Erro ao carregar visitas');
+            }
+        }
+
+        async function carregarImoveis() {
+            try {
+                const response = await fetch(`${API_URL}/imoveis`);
+                const imoveis = await response.json();
+                const select = document.getElementById('imovelId');
+                select.innerHTML = '<option value="">Selecione...</option>' +
+                    imoveis.filter(i => i.ativo).map(i => `<option value="${i.id}">${i.titulo} - ${i.cidade}</option>`).join('');
+            } catch (error) {
+                console.error('Erro ao carregar imóveis:', error);
+            }
+        }
+
+        async function carregarClientes() {
+            try {
+                const response = await fetch(`${API_URL}/clientes`);
+                const clientes = await response.json();
+                const select = document.getElementById('clienteId');
+                select.innerHTML = '<option value="">Selecione...</option>' +
+                    clientes.map(c => `<option value="${c.id}">${c.nome} - ${c.cpf}</option>`).join('');
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
+        }
+
+        function exibirVisitas(visitas) {
+            const tabela = document.getElementById('visitasTabela');
+            const hoje = new Date().toDateString();
+            
+            if (visitas.length === 0) {
+                tabela.innerHTML = '<tr><td colspan="7" class="text-center">Nenhuma visita encontrada.</td></tr>';
+                return;
+            }
+
+            tabela.innerHTML = visitas.map(v => {
+                const dataVisita = new Date(v.dataVisita).toDateString();
+                const isHoje = dataVisita === hoje;
+                const trClass = isHoje ? 'visita-hoje' : '';
+                
+                return `
+                <tr class="${trClass}">
+                    <td>${formatarData(v.dataVisita)} ${isHoje ? '<span class="badge bg-warning">HOJE</span>' : ''}</td>
+                    <td>${formatarHora(v.horaInicio)} - ${formatarHora(v.horaFim)}</td>
+                    <td>${v.imovel?.titulo || 'N/A'}</td>
+                    <td>${v.nomeInteressado || v.cliente?.nome || 'N/A'}</td>
+                    <td>${v.telefoneInteressado || v.cliente?.telefone || '-'}</td>
+                    <td><span class="badge badge-${v.status.toLowerCase()}">${v.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarVisita(${v.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="excluirVisita(${v.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function atualizarEstatisticas(visitas) {
+            document.getElementById('totalVisitas').textContent = visitas.length;
+            
+            const hoje = new Date().toDateString();
+            const visitasHoje = visitas.filter(v => new Date(v.dataVisita).toDateString() === hoje);
+            document.getElementById('visitasHoje').textContent = visitasHoje.length;
+            
+            const agendadas = visitas.filter(v => v.status === 'Agendada' || v.status === 'Confirmada');
+            document.getElementById('visitasAgendadas').textContent = agendadas.length;
+            
+            const realizadas = visitas.filter(v => v.status === 'Realizada');
+            document.getElementById('visitasRealizadas').textContent = realizadas.length;
+        }
+
+        function filtrarVisitas() {
+            const status = document.getElementById('filtroStatus').value;
+            const dataInicio = document.getElementById('filtroDataInicio').value;
+            const dataFim = document.getElementById('filtroDataFim').value;
+
+            const filtradas = visitasData.filter(v => {
+                const dataVisita = new Date(v.dataVisita);
+                const matchStatus = !status || v.status === status;
+                const matchDataInicio = !dataInicio || dataVisita >= new Date(dataInicio);
+                const matchDataFim = !dataFim || dataVisita <= new Date(dataFim);
+                
+                return matchStatus && matchDataInicio && matchDataFim;
+            });
+
+            exibirVisitas(filtradas);
+        }
+
+        function formatarData(data) {
+            return new Date(data).toLocaleDateString('pt-BR');
+        }        function formatarHora(dateTime) {
+            // DateTime vem como "2025-10-15T09:00:00" ou string de hora
+            if (!dateTime) return '';
+            
+            if (typeof dateTime === 'string') {
+                // Se tem T, é DateTime completo
+                if (dateTime.includes('T')) {
+                    const hora = dateTime.split('T')[1];
+                    return hora.substring(0, 5);
+                }
+                // Se não, é apenas hora
+                return dateTime.substring(0, 5);
+            }
+            
+            // Se for Date object
+            const date = new Date(dateTime);
+            return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function novaVisita() {
+            document.getElementById('modalTitle').textContent = 'Nova Visita';
+            document.getElementById('visitaForm').reset();
+            document.getElementById('visitaId').value = '';
+            document.getElementById('status').value = 'Agendada';
+            document.getElementById('dataVisita').valueAsDate = new Date();
+        }
+
+        async function editarVisita(id) {
+            try {
+                const response = await fetch(`${API_URL}/visitas/${id}`);
+                const visita = await response.json();
+
+                document.getElementById('modalTitle').textContent = 'Editar Visita';
+                document.getElementById('visitaId').value = visita.id;
+                document.getElementById('imovelId').value = visita.imovelId;
+                document.getElementById('clienteId').value = visita.clienteId;
+                document.getElementById('dataVisita').value = visita.dataVisita.split('T')[0];
+                document.getElementById('horaInicio').value = formatarHora(visita.horaInicio);
+                document.getElementById('horaFim').value = formatarHora(visita.horaFim);
+                document.getElementById('status').value = visita.status;
+                document.getElementById('nomeInteressado').value = visita.nomeInteressado || '';
+                document.getElementById('telefoneInteressado').value = visita.telefoneInteressado || '';
+                document.getElementById('emailInteressado').value = visita.emailInteressado || '';
+                document.getElementById('observacoes').value = visita.observacoes || '';
+
+                new bootstrap.Modal(document.getElementById('visitaModal')).show();
+            } catch (error) {
+                console.error('Erro ao carregar visita:', error);
+                alert('Erro ao carregar dados da visita');
+            }
+        }
+
+        async function salvarVisita() {
+            const form = document.getElementById('visitaForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }            const horaInicio = document.getElementById('horaInicio').value;
+            const horaFim = document.getElementById('horaFim').value;
+            const dataVisita = document.getElementById('dataVisita').value;
+
+            if (horaInicio >= horaFim) {
+                alert('A hora de início deve ser anterior à hora de término.');
+                return;
+            }
+
+            const id = document.getElementById('visitaId').value;
+            const visita = {
+                id: id ? parseInt(id) : 0,
+                imovelId: parseInt(document.getElementById('imovelId').value),
+                clienteId: parseInt(document.getElementById('clienteId').value),
+                dataVisita: dataVisita,
+                horaInicio: dataVisita + 'T' + horaInicio + ':00',
+                horaFim: dataVisita + 'T' + horaFim + ':00',
+                status: document.getElementById('status').value,
+                nomeInteressado: document.getElementById('nomeInteressado').value || null,
+                telefoneInteressado: document.getElementById('telefoneInteressado').value.replace(/\D/g, '') || null,
+                emailInteressado: document.getElementById('emailInteressado').value || null,
+                observacoes: document.getElementById('observacoes').value || null
+            };
+
+            try {
+                const url = id ? `${API_URL}/visitas/${id}` : `${API_URL}/visitas`;
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(visita)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('visitaModal')).hide();
+                    carregarVisitas();
+                    alert(id ? 'Visita atualizada com sucesso!' : 'Visita agendada com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao salvar visita');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar visita:', error);
+                alert('Erro ao salvar visita');
+            }
+        }
+
+        async function excluirVisita(id) {
+            if (!confirm('Tem certeza que deseja excluir esta visita?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/visitas/${id}`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    carregarVisitas();
+                    alert('Visita excluída com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao excluir visita');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir visita:', error);
+                alert('Erro ao excluir visita');
+            }
+        }
+    </script>
+</body>
+</html>
